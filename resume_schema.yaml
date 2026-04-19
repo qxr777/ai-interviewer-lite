@@ -1,0 +1,38 @@
+# resume_schema.yaml
+
+type: object
+required:
+  - name
+  - skills
+  - experience
+
+properties:
+  name:
+    type: string
+    min_length: 1
+  
+  email:
+    type: string
+    nullable: true
+  
+  skills:
+    type: array
+    items:
+      type: string
+    min_items: 1
+  
+  experience:
+    type: array
+    items:
+      type: object
+      required:
+        - company
+        - role
+  
+  education:
+    type: array
+    nullable: true
+  
+  years_of_experience:
+    type: integer
+    minimum: 0

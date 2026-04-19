@@ -1,0 +1,21 @@
+# .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+venv/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 系统
+.DS_Store

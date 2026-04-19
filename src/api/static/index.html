@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interviewer Lite</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; margin-bottom: 10px; }
+        .section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; }
+        .hidden { display: none; }
+        .message { padding: 12px; border-radius: 4px; margin: 10px 0; display: none; }
+        .message.show { display: block; }
+        .message.error { background: #f8d7da; color: #721c24; }
+        .message.success { background: #d4edda; color: #155724; }
+        .chat-box { border: 1px solid #ddd; border-radius: 4px; padding: 15px; margin: 10px 0; background: #fafafa; }
+        .chat-question { color: #007bff; border-left: 3px solid #007bff; padding-left: 10px; }
+        .chat-answer { color: #333; border-left: 3px solid #28a745; padding-left: 10px; }
+        .progress-dots { display: flex; gap: 8px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; background: #ddd; }
+        .dot.active { background: #007bff; }
+        .dot.completed { background: #28a745; }
+        .score { color: #28a745; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI Interviewer Lite</h1>
+    <p style="color:#666;margin-bottom:20px;">CS599 企业级应用软件设计与开发</p>
+    
+    <div id="message" class="message"></div>
+    
+    <div class="section" id="section-resume">
+        <h2>📄 1. 上传简历</h2>
+        <textarea id="resume-text" placeholder="请粘贴简历文本..." style="height:200px"></textarea>
+        <div style="margin-top:15px">
+            <select id="position" style="padding:10px"><option>Python Developer</option><option>Frontend Developer</option></select>
+            <button onclick="startInterview()" id="start-btn" style="margin-left:10px">开始面试</button>
+        </div>
+    </div>
+    
+    <div class="section hidden" id="section-interview">
+        <h2>💬 2. 面试进行中</h2>
+        <div style="margin:10px 0;display:flex;align-items:center;gap:15px">
+            <span>进度：</span>
+            <div class="progress-dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+            <span style="margin-left:20px">当前分数：<span id="current-score" class="score">-</span></span>
+        </div>
+        <div id="chat-container"></div>
+        <div class="chat-box">
+            <textarea id="answer-input" placeholder="请输入你的回答..." style="height:100px"></textarea>
+            <button onclick="submitAnswer()" id="submit-btn" style="margin-top:10px">提交回答</button>
+        </div>
+    </div>
+    
+    <div class="section hidden" id="section-report">
+        <h2>📊 3. 面试报告</h2>
+        <div id="report-content"></div>
+        <button onclick="resetInterview()" style="margin-top:20px">🔄 开始新面试</button>
+    </div>
+    
+    <script>
+        let sessionId = null, round = 0, chatHistory = [], currentQuestion = '';
+        
+        function showMessage(text, isError = false) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = 'message show ' + (isError ? 'error' : 'success');
+            setTimeout(() => msg.className = 'message', 5000);
+        }
+        
+        async function startInterview() {
+            const resumeText = document.getElementById('resume-text').value;
+            if (!resumeText.trim()) { showMessage('请输入简历内容', true); return; }
+            
+            document.getElementById('start-btn').disabled = true;
+            try {
+                const response = await fetch('/api/interview/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({position: document.getElementById('position').value, resume_text: resumeText})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+                
+                sessionId = data.session_id;
+                currentQuestion = data.first_question;
+                document.getElementById('section-resume').classList.add('hidden');
+                document.getElementById('section-interview').classList.remove('hidden');
+                addChatMessage(data.first_question, 'question');
+                showMessage('面试已开始', false);
+            } catch (error) {
+                showMessage('启动失败：' + error.message, true);
+            }
+            document.getElementById('start-btn').disabled = false;
+        }
+        
+        async function submitAnswer() {
+            const answer = document.getElementById('answer-input').value;
+            if (!answer.trim()) { showMessage('请输入回答', true); return; }
+            
+            document.getElementById('submit-btn').disabled = true;
+            try {
+                const response = await fetch(`/api/interview/${sessionId}/answer`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({answer})
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.detail);
+                
+                chatHistory.push({question: currentQuestion, answer, score: data.current_score});
+                addChatMessage(answer, 'answer');
+                
+                if (data.action === 'complete') {
+                    showReport(data);
+                } else {
+                    round++;
+                    currentQuestion = data.question;
+                    document.getElementById('current-score').textContent = data.current_score?.toFixed(1) || '-';
+                    addChatMessage(data.question, 'question');
+                    document.getElementById('answer-input').value = '';
+                }
+            } catch (error) {
+                showMessage('提交失败：' + error.message, true);
+            }
+            document.getElementById('submit-btn').disabled = false;
+        }
+        
+        function addChatMessage(text, type) {
+            const container = document.getElementById('chat-container');
+            const div = document.createElement('div');
+            div.className = 'chat-box';
+            div.innerHTML = type === 'question' 
+                ? `<div class="chat-question"><strong>Q:</strong> ${text}</div>`
+                : `<div class="chat-answer"><strong>A:</strong> ${text}</div>`;
+            container.appendChild(div);
+        }
+        
+        function showReport(report) {
+            document.getElementById('section-interview').classList.add('hidden');
+            document.getElementById('section-report').classList.remove('hidden');
+            document.getElementById('report-content').innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin:15px 0">
+                    <div class="chat-box"><label>总分</label><div class="score" style="font-size:24px">${report.overall_score?.toFixed(1) || '-'}</div></div>
+                    <div class="chat-box"><label>置信度</label><div>${report.confidence || '-'}</div></div>
+                </div>
+                <h3>各轮分数</h3>
+                <div style="display:flex;gap:10px">${(report.question_scores||[]).map((s,i)=>`<div class="chat-box">第${i+1}轮：${s.toFixed(1)}</div>`).join('')}</div>
+            `;
+        }
+        
+        function resetInterview() {
+            sessionId = null; round = 0; chatHistory = [];
+            document.getElementById('resume-text').value = '';
+            document.getElementById('chat-container').innerHTML = '';
+            document.getElementById('section-report').classList.add('hidden');
+            document.getElementById('section-resume').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

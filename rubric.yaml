@@ -1,0 +1,12 @@
+# rubric.yaml
+
+name: technical-interview
+version: 1.0
+
+dimensions:
+  - name: technical_accuracy
+    weight: 0.5
+  - name: clarity
+    weight: 0.3
+  - name: completeness
+    weight: 0.2

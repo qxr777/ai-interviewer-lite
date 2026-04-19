@@ -1,0 +1,8 @@
+张三
+邮箱：zhangsan@example.com
+技能：Python, FastAPI, PostgreSQL, React
+工作经历：
+- 高级开发工程师，ABC 公司，2020-2023
+- 软件工程师，XYZ 公司，2018-2020
+教育：
+- 计算机学士，XX 大学，2014-2018
