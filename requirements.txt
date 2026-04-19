@@ -11,6 +11,9 @@ pyyaml>=6.0
 # HTTP 客户端
 httpx>=0.24.0
 
+# 环境配置
+python-dotenv>=1.0.0
+
 # 测试
 pytest>=7.0.0
 pytest-cov>=4.0.0

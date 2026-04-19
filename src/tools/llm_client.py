@@ -1,6 +1,10 @@
 import os
 import httpx
 import json
+from dotenv import load_dotenv
+
+# 加载 .env 环境变量
+load_dotenv()
 
 LLM_API_KEY = os.getenv("LLM_API_KEY")
 LLM_API_BASE = os.getenv("LLM_API_BASE", "https://api.bianxie.ai/v1")
