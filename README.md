@@ -24,7 +24,7 @@
 |------|------|
 | 语言 | Python 3.10+ |
 | Web 框架 | FastAPI |
-| LLM | Claude/GPT |
+| LLM | DeepSeek-Chat (OpenAI 兼容接口) |
 | 数据库 | SQLite |
 | 测试 | pytest |
 

@@ -122,15 +122,21 @@ import os
 import httpx
 
 LLM_API_KEY = os.getenv("LLM_API_KEY")
+LLM_API_BASE = os.getenv("LLM_API_BASE", "https://api.bianxie.ai/v1")
+LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 
 async def call_llm(prompt: str) -> str:
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            "https://api.anthropic.com/v1/messages",
+            f"{LLM_API_BASE}/chat/completions",
             headers={"Authorization": f"Bearer {LLM_API_KEY}"},
-            json={"model": "claude-sonnet-4-20250514", "messages": [...]}
+            json={
+                "model": LLM_MODEL,
+                "messages": [{"role": "user", "content": prompt}]
+            }
         )
-        return response.json()["content"][0]["text"]
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
 ```
 
 ### Schema 验证
