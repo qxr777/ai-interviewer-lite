@@ -35,6 +35,13 @@ def check_resume_confidence(extracted):
     return {"confidence": score, "passed": score >= 0.7}
 ```
 
-## 4. 审计日志
+## 4. 审计日志 (Audit Log)
 
-记录事件：interview_start, resume_extracted, answer_evaluated, interview_complete
+### 4.1 功能要求
+- **持久化要求**：审计日志**必须**实时持久化到磁盘文件（推荐：`logs/audit.jsonl`）。
+- **可查询性**：必须提供 API 接口（如 `/api/audit/logs`）或 CLI 工具，确保外部系统或开发者可随时调取日志流。
+- **记录范围**：必须包含关键生命周期事件（开始、解析、验证失败、评估、结束）。
+
+### 4.2 历史教训 (Lessons Learned)
+- **遗漏点**：初始版本将日志存储在 `AuditLogger` 的实例变量（内存）中，导致应用重启或请求结束后数据丢失。
+- **修正方案**：后续版本强制要求使用追加写（Append-only）的文件存储，并增加全局审计接口。
