@@ -115,7 +115,7 @@ ai-interviewer-lite/
 
 如果你正在使用 **Trae CN**, **Claude Code**, **Antigravity** 或类似的 Code Agent 进行开发，请直接发送以下指令以便 Agent 能够根据 `AGENTS.md` 的规范独立接管项目：
 
-> **".env已经配置好LLM API KEY，独立完成所有的开发和测试工作，通过你控制的Browser完成自动化测试。"**
+> **.env已经配置好LLM API KEY，独立完成所有的开发和测试工作，通过你控制的Browser完成自动化测试。**
 
 ---
 
