@@ -5,6 +5,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+from pydantic import BaseModel
+
+class StartRequest(BaseModel):
+    position: str
+    resume_text: str
+
+class AnswerRequest(BaseModel):
+    answer: str
 
 app = FastAPI(title="AI Interviewer Lite")
 
@@ -25,13 +33,13 @@ import uuid
 sessions = {}
 
 @app.post("/api/interview/start")
-async def start_interview(position: str, resume_text: str):
+async def start_interview(req: StartRequest):
     """开始面试"""
     session_id = str(uuid.uuid4())
-    agent = InterviewAgent(session_id, position)
+    agent = InterviewAgent(session_id, req.position)
     
     try:
-        result = await agent.start(resume_text)
+        result = await agent.start(req.resume_text)
         sessions[session_id] = agent
         return result
     except Exception as e:
@@ -39,14 +47,14 @@ async def start_interview(position: str, resume_text: str):
 
 
 @app.post("/api/interview/{session_id}/answer")
-async def submit_answer(session_id: str, answer: str):
+async def submit_answer(session_id: str, req: AnswerRequest):
     """提交回答"""
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="会话不存在")
         
     agent = sessions[session_id]
     try:
-        result = await agent.submit_answer(answer)
+        result = await agent.submit_answer(req.answer)
         return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

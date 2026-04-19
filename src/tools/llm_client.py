@@ -8,6 +8,14 @@ LLM_MODEL = os.getenv("LLM_MODEL", "deepseek-chat")
 
 async def call_llm(prompt: str, response_format: str = "text") -> str:
     """封装对 LLM 的调用。支持返回纯文本和 JSON"""
+    if os.getenv("MOCK_LLM", "false").lower() == "true":
+        # 如果是 Mock 模式，直接返回预定义的响应
+        if response_format == "json":
+            if "简历" in prompt:
+                return '{"name": "模拟用户", "skills": ["Python", "Unit Testing"], "experience": [{"company": "模拟公司", "role": "测试工程师"}]}'
+            return '{"score": 80, "feedback": "这是一个模拟的优秀回答。"}'
+        return "这是一个模拟的面试问题？"
+
     messages = [{"role": "user", "content": prompt}]
     
     payload = {

@@ -40,6 +40,7 @@ class InterviewAgent:
         return {
             "session_id": self.session_id,
             "resume": self.resume_data,
+            "first_question": first_question,
             "question": first_question,
             "question_idx": 1
         }
@@ -69,9 +70,13 @@ class InterviewAgent:
         # 决定是否结束面试（假设 3 轮）
         if len(self.questions) >= 3:
             self.audit.log("interview_complete", {"session_id": self.session_id, "total_rounds": len(self.questions)})
+            report = self.get_report()
             return {
+                "action": "complete",
                 "status": "complete",
-                "evaluation": eval_result,
+                "overall_score": report["overall_score"],
+                "confidence": report["confidence"],
+                "question_scores": report["question_scores"],
                 "message": "面试结束，感谢您的参与。"
             }
         
@@ -80,7 +85,9 @@ class InterviewAgent:
         self.questions.append(next_question)
         
         return {
+            "action": "continue",
             "status": "in_progress",
+            "current_score": eval_result["score"],
             "evaluation": eval_result,
             "question": next_question,
             "question_idx": len(self.questions)
@@ -88,13 +95,15 @@ class InterviewAgent:
     
     def get_report(self) -> dict:
         """生成最终报告"""
-        total_score = sum(s["score"] for s in self.scores) / len(self.scores) if self.scores else 0
+        avg_score = sum(s["score"] for s in self.scores) / len(self.scores) if self.scores else 0
         return {
             "session_id": self.session_id,
             "position": self.position,
             "resume": self.resume_data,
             "rounds": len(self.scores),
-            "total_score": round(total_score, 1),
+            "overall_score": round(avg_score, 1),
+            "confidence": "High",
+            "question_scores": [s["score"] for s in self.scores],
             "details": self.scores,
             "audit_trail": self.audit.get_trail()
         }
