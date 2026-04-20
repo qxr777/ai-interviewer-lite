@@ -113,9 +113,16 @@ ai-interviewer-lite/
 
 ## 🤖 Code Agent 自动开发 (Autonomous Development)
 
-如果你正在使用 **Trae CN**, **Claude Code**, **Antigravity** 或类似的 Code Agent 进行开发，请直接发送以下指令以便 Agent 能够根据 `AGENTS.md` 的规范独立接管项目：
+> [!IMPORTANT]
+> 在启动 Agent 之前，请确保你已经执行了 `cp .env.example .env`，并在 `.env` 文件中填入了有效的 `LLM_API_KEY` 和 `LLM_API_BASE`。
 
-> **.env已经配置好LLM API KEY，独立完成所有的开发和测试工作，通过你控制的Browser完成自动化测试。**
+如果你正在使用 **Trae CN**, **Claude Code**, **Antigravity** 或类似的 Code Agent 进行开发，请直接复制并发送以下指令，以便 Agent 能够根据 `AGENTS.md` 的规范独立接管并完成项目：
+
+```text
+.env已经配置好LLM API KEY，独立完成所有的开发和测试工作，通过你控制的Browser完成自动化测试。
+```
+
+
 
 ---
 
